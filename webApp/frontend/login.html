@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/navigation.js"></script>
+</head>
+
+<body class="plain-bg">
+
+<header class="top-bar">
+  Smart Surveillance System
+</header>
+
+<div class="page-center">
+  <div class="form-card">
+    <h3>Login</h3>
+    <input type="email" id="user" placeholder="Email">
+    <span id="emailError" class="error-text"></span>
+
+    <input type="password" id="pass" placeholder="Password">
+    <span id="passError" class="error-text"></span>
+
+    <button id="loginBtn" class="login-btn">Login</button>
+
+    <p class="small-text" onclick="goTo('register.html')">
+      Don't have an account? Register
+    </p>
+  </div>
+
+
+</div>
+
+<script>
+const user = document.getElementById("user");
+const pass = document.getElementById("pass");
+const emailError = document.getElementById("emailError");
+const passError = document.getElementById("passError");
+const btn = document.getElementById("loginBtn");
+
+btn.onclick = function () {
+
+  emailError.innerText = "";
+  passError.innerText = "";
+
+  let valid = true;
+
+  if (!user.value.includes("@")) {
+    emailError.innerText = "Please include an '@' in the email address.";
+    valid = false;
+  }
+
+  const password = pass.value;
+  const passwordPattern =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+  if (!passwordPattern.test(password)) {
+    passError.innerText =
+      "Password must be at least 8 characters and include uppercase, lowercase, number and special character.";
+    valid = false;
+  }
+
+  if (valid) {
+
+    fetch("https://smart-surveillance-system-production.up.railway.app/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: user.value.trim(),
+        password: pass.value
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+      // 🔥 Flask returns message + token
+      if (!data.token) {
+        passError.innerText = data.message || "Invalid email or password";
+        return;
+      }
+
+      // Save JWT token
+      localStorage.setItem("token", data.token);
+
+      alert("Login successful!");
+      goTo("dashboard.html");
+    })
+    .catch(() => {
+      alert("Backend not reachable. Please run Flask server.");
+    });
+
+  }
+};
+</script>
+
+</body>
+</html>
